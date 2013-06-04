@@ -1,51 +1,104 @@
 #!/bin/sh
 
+set -u
 
-KOTAM_DATA_DIR=$(cd `dirname "$0"`; cd ../lib ; pwd )
+KOTAM_DATA_DIR=$(dirname `readlink -f "$0"`)
+KOTAM_DATA_DIR=$(cd "$KOTAM_DATA_DIR/../lib" ; pwd -P)
+#echo $KOTAM_DATA_DIR
+
 KOTAM_CONFIG_DIR=$HOME/.config/kotam
 
  . $KOTAM_DATA_DIR/base.sh
 
-## Expected usage :
-#
-# kotam exec <name>
-# kotam init <name>
-# 
+
+kotam_usage() {
+	echo "Usage : `basename "$0"` [options]"
+}
+
+kotam_fail(){
+	printf "ERROR: $*\n\n" >&2
+	kotam_usage
+	exit 1
+}
+
+kotam_project_list() {
+	echo "List of projects :"
+	ls $KOTAM_CONFIG_DIR/*.kotam 2> /dev/null
+}
+
+kotam_project_edit() {
+	if [ ! -e "$KOTAM_CONFIG_DIR/$project.kotam" ]; then
+		kotam_fail "unknown project $project" >&2
+	fi
+	"$EDITOR" "$KOTAM_CONFIG_DIR/$project.kotam"
+}
+
+kotam_project_run(){
+	project="$arg"
+	if [ ! -e "$KOTAM_CONFIG_DIR/$project.kotam" ]; then
+		kotam_fail "unknown project $project" >&2
+	fi
+	. "$KOTAM_CONFIG_DIR/$project.kotam"
+}
+
+ACTION=""
+PROJECT=""
 
 mkdir -p $KOTAM_CONFIG_DIR
 while [ $# -gt 0 ]; do
 	arg=${1:-}
 	opt=${2:-}
 	case $arg in 
-		-l|--list) #list projects
-			echo "List of projects :"
-			ls $KOTAM_CONFIG_DIR/*.kotam 2> /dev/null
+		-l|--list) 
+			ACTION="list"
 			;;
 		-e) # edit project
 			shift
-			project="$opt"
-			if [ -z "$project" ]; then
-				echo "ERROR: project name missing" >&2
-				exit 1
-			elif [ ! -e "$KOTAM_CONFIG_DIR/$project.kotam" ]; then
-				echo "ERROR: unknown project $project" >&2
-				exit 1
+			if [ -z "$opt" ]; then
+				kotam_fail "project name missing"
 			fi
-			"$EDITOR" "$KOTAM_CONFIG_DIR/$project.kotam"
+			ACTION="edit"
+			PROJECT="$opt"
 			;;
 		-c) # create
+			shift
+			if [ -z "$opt" ]; then
+				kotam_fail "project name missing"
+			fi
+			ACTION="create"
+			PROJECT="$opt"
 			;;
-		-d) # destroy
+		-d) # delete
+			shift
+			if [ -z "$opt" ]; then
+				kotam_fail "project name missing"
+			fi
+			ACTION="delete"
+			PROJECT="$opt"
 			;;
 		*) #enter into project
-			project="$arg"
-			if [ ! -e "$KOTAM_CONFIG_DIR/$project.kotam" ]; then
-				echo "ERROR: unknown project $project" >&2
-				exit 1
-			fi
-			. "$KOTAM_CONFIG_DIR/$project.kotam"
+			ACTION="run"
 			;;
 	esac
 	shift
 done
+
+case "$ACTION" in 
+	list)
+		kotam_project_list
+		;;
+	create)
+		kotam__project_create
+		;;
+	edit)
+		kotam__project_edit
+		;;
+	delete)
+		kotam_project_delete
+		;;
+	*)
+		kotam_fail "undefined action $ACTION"
+		;;
+esac
+
 
