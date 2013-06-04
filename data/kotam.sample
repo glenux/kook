@@ -1,0 +1,47 @@
+
+PROJECT_ROOT="/path/to/somewhere"
+WPTHEME_PATH="$PROJECT_ROOT/wp-root"
+
+kotam_newtab
+kotam_renametab "VAGRANT"
+kotam_run "cd $PROJECT_ROOT" 
+kotam_run "clear"
+kotam_run 'sudo /etc/init.d/vboxdrv start'
+kotam_run './bin/vagrant up'
+
+kotam_newtab
+kotam_renametab "VM"
+kotam_run "cd $PROJECT_ROOT" 
+kotam_run "clear"
+
+kotam_newtab
+kotam_renametab "FORGE"
+kotam_run "cd $WPTHEME_PATH" 
+kotam_run "clear"
+kotam_run "be forge watch"
+
+kotam_newtab
+kotam_renametab "ASSETS"
+kotam_run "cd $WPTHEME_PATH/source/assets" 
+kotam_run "clear"
+
+kotam_newtab
+kotam_renametab "JS"
+kotam_run "cd $WPTHEME_PATH/source/assets/javascripts" 
+kotam_run "clear"
+
+kotam_newtab
+kotam_renametab "CSS"
+kotam_run "cd $WPTHEME_PATH/source/assets/stylesheets" 
+kotam_run "clear"
+
+kotam_newtab
+kotam_renametab "FUNCTIONS"
+kotam_run "cd $WPTHEME_PATH/source/functions" 
+kotam_run "clear"
+
+kotam_newtab
+kotam_renametab "TEMPLATES"
+kotam_run "cd $WPTHEME_PATH/source/templates" 
+kotam_run "clear"
+

@@ -1,25 +1,25 @@
 #!/bin/sh
 
 
-KOPROJ_DATA_DIR=$(cd `dirname "$0"`; cd ../lib ; pwd )
-KOPROJ_CONFIG_DIR=$HOME/.config/koproj
+KOTAM_DATA_DIR=$(cd `dirname "$0"`; cd ../lib ; pwd )
+KOTAM_CONFIG_DIR=$HOME/.config/kotam
 
- . $KOPROJ_DATA_DIR/base.sh
+ . $KOTAM_DATA_DIR/base.sh
 
 ## Expected usage :
 #
-# koproj exec <name>
-# koproj init <name>
+# kotam exec <name>
+# kotam init <name>
 # 
 
-mkdir -p $KOPROJ_CONFIG_DIR
+mkdir -p $KOTAM_CONFIG_DIR
 while [ $# -gt 0 ]; do
 	arg=${1:-}
 	opt=${2:-}
 	case $arg in 
 		-l|--list) #list projects
 			echo "List of projects :"
-			ls $KOPROJ_CONFIG_DIR/*.koproj 2> /dev/null
+			ls $KOTAM_CONFIG_DIR/*.kotam 2> /dev/null
 			;;
 		-e) # edit project
 			shift
@@ -27,11 +27,11 @@ while [ $# -gt 0 ]; do
 			if [ -z "$project" ]; then
 				echo "ERROR: project name missing" >&2
 				exit 1
-			elif [ ! -e "$KOPROJ_CONFIG_DIR/$project.koproj" ]; then
+			elif [ ! -e "$KOTAM_CONFIG_DIR/$project.kotam" ]; then
 				echo "ERROR: unknown project $project" >&2
 				exit 1
 			fi
-			"$EDITOR" "$KOPROJ_CONFIG_DIR/$project.koproj"
+			"$EDITOR" "$KOTAM_CONFIG_DIR/$project.kotam"
 			;;
 		-c) # create
 			;;
@@ -39,11 +39,11 @@ while [ $# -gt 0 ]; do
 			;;
 		*) #enter into project
 			project="$arg"
-			if [ ! -e "$KOPROJ_CONFIG_DIR/$project.koproj" ]; then
+			if [ ! -e "$KOTAM_CONFIG_DIR/$project.kotam" ]; then
 				echo "ERROR: unknown project $project" >&2
 				exit 1
 			fi
-			. "$KOPROJ_CONFIG_DIR/$project.koproj"
+			. "$KOTAM_CONFIG_DIR/$project.kotam"
 			;;
 	esac
 	shift
