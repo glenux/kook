@@ -1,0 +1,51 @@
+#!/bin/sh
+
+
+KOPROJ_DATA_DIR=$(cd `dirname "$0"`; cd ../lib ; pwd )
+KOPROJ_CONFIG_DIR=$HOME/.config/koproj
+
+ . $KOPROJ_DATA_DIR/base.sh
+
+## Expected usage :
+#
+# koproj exec <name>
+# koproj init <name>
+# 
+
+mkdir -p $KOPROJ_CONFIG_DIR
+while [ $# -gt 0 ]; do
+	arg=${1:-}
+	opt=${2:-}
+	case $arg in 
+		-l|--list) #list projects
+			echo "List of projects :"
+			ls $KOPROJ_CONFIG_DIR/*.koproj 2> /dev/null
+			;;
+		-e) # edit project
+			shift
+			project="$opt"
+			if [ -z "$project" ]; then
+				echo "ERROR: project name missing" >&2
+				exit 1
+			elif [ ! -e "$KOPROJ_CONFIG_DIR/$project.koproj" ]; then
+				echo "ERROR: unknown project $project" >&2
+				exit 1
+			fi
+			"$EDITOR" "$KOPROJ_CONFIG_DIR/$project.koproj"
+			;;
+		-c) # create
+			;;
+		-d) # destroy
+			;;
+		*) #enter into project
+			project="$arg"
+			if [ ! -e "$KOPROJ_CONFIG_DIR/$project.koproj" ]; then
+				echo "ERROR: unknown project $project" >&2
+				exit 1
+			fi
+			. "$KOPROJ_CONFIG_DIR/$project.koproj"
+			;;
+	esac
+	shift
+done
+
