@@ -22,23 +22,27 @@ kotam_fail(){
 }
 
 kotam_project_list() {
+	local tmppwd=$(pwd)
 	echo "List of projects :"
-	ls $KOTAM_CONFIG_DIR/*.kotam 2> /dev/null
+	cd $KOTAM_CONFIG_DIR
+	find -maxdepth 1 -mindepth 1 -name '*.kotam' |sed -e 's|./|  |' -e 's/.kotam$//'
+	cd $tmppwd
+}
+
+kotam_project_ensure() {
+	if [ ! -e "$KOTAM_CONFIG_DIR/$PROJECT.kotam" ]; then
+		kotam_fail "unknown project $PROJECT" >&2
+	fi
 }
 
 kotam_project_edit() {
-	if [ ! -e "$KOTAM_CONFIG_DIR/$project.kotam" ]; then
-		kotam_fail "unknown project $project" >&2
-	fi
-	"$EDITOR" "$KOTAM_CONFIG_DIR/$project.kotam"
+	kotam_project_ensure
+	"$EDITOR" "$KOTAM_CONFIG_DIR/$PROJECT.kotam"
 }
 
 kotam_project_run(){
-	project="$arg"
-	if [ ! -e "$KOTAM_CONFIG_DIR/$project.kotam" ]; then
-		kotam_fail "unknown project $project" >&2
-	fi
-	. "$KOTAM_CONFIG_DIR/$project.kotam"
+	kotam_project_ensure
+	. "$KOTAM_CONFIG_DIR/$PROJECT.kotam"
 }
 
 ACTION=""
@@ -78,6 +82,7 @@ while [ $# -gt 0 ]; do
 			;;
 		*) #enter into project
 			ACTION="run"
+			PROJECT="$arg"
 			;;
 	esac
 	shift
@@ -88,13 +93,16 @@ case "$ACTION" in
 		kotam_project_list
 		;;
 	create)
-		kotam__project_create
+		kotam_project_create
 		;;
 	edit)
-		kotam__project_edit
+		kotam_project_edit
 		;;
 	delete)
 		kotam_project_delete
+		;;
+	run)
+		kotam_project_run
 		;;
 	*)
 		kotam_fail "undefined action $ACTION"

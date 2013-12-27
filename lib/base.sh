@@ -11,7 +11,8 @@ kotam_newtab() {
 	#dbus-send --session --dest=${KONSOLE_DBUS_SERVICE} --type=method_call \
 	#	--print-reply /konsole/MainWindow_1 org.kde.KMainWindow.activateAction string:"new-tab"
 
-	session=$(qdbus org.kde.konsole /Konsole newSession)
+	TARGET=${KONSOLE_DBUS_SERVICE:-org.kde.konsole}
+	session=$(qdbus $TARGET /Konsole newSession)
 }
 
 kotam_renametab() {
