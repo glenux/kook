@@ -31,9 +31,17 @@ module Kook
 			@path = path
 		end
 
-		def add_view view
-			raise "ExistingView #{view.name}" if @views.has_key? view.name
-			@views[view.name] = view
+		def create_view view_name, view_path
+			raise ExistingView, view_name if @views.has_key? view_name
+			View.validate_name view_name
+
+			@views[view_name] = View.new view_name, view_path
+		end
+
+		def add_view view_data
+			raise ExistingView, view_data.name if @views.has_key? view_data.name
+
+			@views[view_data.name] = view_data
 		end
 
 		def remove_view view_name
@@ -42,6 +50,7 @@ module Kook
 		end
 
 		def each_view 
+			pp @views
 			@views.each do |view_name, view_data|
 				yield view_name, view_data
 			end
@@ -61,12 +70,11 @@ module Kook
 				p.description = project_hash['description']
 				p.path = project_path
 
-				#project_hash[:views].each do |hash_view|
-				#	view = View.new do |v|
-				#		v.from_hash hash_view
-				#	end
-				#	p.add_view view
-				#end
+				#pp project_hash['views']
+				project_hash['views'].each do |view_hash|
+					view_data = View.from_hash view_hash
+					p.add_view view_data
+				end
 			end
 		end
 

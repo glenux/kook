@@ -67,4 +67,4 @@ kook project add kook-project $KOOK_OPTS || fail
 kook view add root $KOOK_OPTS --project kook-project || fail
 kook view list $KOOK_OPTS --project kook-project || fail
 
-test_cleanup
+#test_cleanup

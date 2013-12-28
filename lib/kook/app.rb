@@ -63,8 +63,16 @@ module Kook
 
 			raise MissingProject if not @projects.has_key? project_name
 
-			view = View.new view_name
-			@projects[project_name].add_view view
+			project_path = @projects[project_name].path
+
+			# simplify if current dir is a subdir of project base
+			if view_path == project_path then
+				view_path = '.'
+			else
+				view_path.gsub!(/^#{project_path}\//,'')
+			end
+
+			@projects[project_name].create_view view_name, view_path
 			save
 		end
 

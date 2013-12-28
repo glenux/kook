@@ -125,22 +125,6 @@ module Kook
 
 				@app.add_view project_name, view_name, view_path
 
-				project_rootdir = config['projects'][project]
-				# simplify if current dir is a subdir of project base
-				if path == project_rootdir then
-					path = '.'
-				else
-					path.gsub!(/^#{project_rootdir}\//,'')
-				end
-
-				if not config['views'].has_key? project then
-					config['views'][project] = {}
-				elsif config['views'][project].nil? then
-					config['views'][project] = {}
-				end
-				#binding.pry
-				config['views'][project][view] = path
-				config.save_main
 			end
 
 			desc "rm PROJECT VIEW", "Unregister existing view on project"

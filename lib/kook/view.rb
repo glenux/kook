@@ -6,10 +6,10 @@ module Kook
 		VIEW_NAME_MIN_SIZE = 4
 		VIEW_NAME_MAX_SIZE = 12
 
-		def initialize name
+		def initialize name, path=nil
 			self.class.validate_name name
 			@name = name
-			@path = nil
+			@path = path
 			@commands = {}
 		end
 
@@ -24,16 +24,16 @@ module Kook
 
 		def to_hash
 			return { 
-				view: @name,
-				path: @path,
-				commands: @commands.values
+				'view' => @name,
+				'path' => @path,
+				'commands' => @commands.values
 			}
 		end
 
-		def from_hash view_hash
-			@name = view_hash[:view]
-			@path = view_hash[:path]
-			@commands = view_hash[:commands]
+		def self.from_hash view_hash
+			view = View.new view_hash['view'], view_hash['path']
+			# @commands = view_hash['commands']
+			view
 		end
 	end
 end
