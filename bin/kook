@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+# vim: set syntax=ruby:
+
+#require 'bundler/setup'
+require 'yaml'
+require 'singleton'
+require 'pry'
+require 'colorize'
+require 'pp'
+
+DATA_DIR = File.expand_path(
+	File.join(File.dirname(__FILE__),'..')
+)
+
+VERSION = "0.3"
+
+$:.insert 0, File.join(DATA_DIR, 'lib')
+
+require 'thor'
+require 'kook'
+
+Kook::CLI::Main.start(ARGV)
+
