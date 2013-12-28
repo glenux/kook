@@ -3,37 +3,38 @@ require 'thor'
 module Kook
 	module CLI
 		module KookHelper
-
-			def fail_for exception, params=nil
-				STDERR.puts "ERROR(#{exception.class}) :  #{exception}"
-				STDERR.puts exception.backtrace
-				exit 1
-			end
-		end
-
-
-		class OldConfig
-			include Singleton
-			include KookHelper
-
-			DEFAULT_CONFIG = {
-				'global' => {}, # (ConfigKey_str => ConfigVal_str ) list
-				'projects' => {}, # Project_str list 
-				'views' => {}, # (Project_str => View_str) list 
-				'commands' => {} # (Project_str => View_str) => Command list
-			}
-
-			def initialize
-				# load file
-				@config = DEFAULT_CONFIG
-				load_main
-				@config
+			def before_filter options
+				@app = App.new
+				@app.load options[:config]
+				@app.verbose = options[:verbose]
+				@app.current_project = options[:project]
 			end
 
+			# Inject our extensions in thor instances
+			def self.included(base)
+				base.class_eval do
+					#if ancestors.include? Thor::Group
+					#	namespace self.name.split('::').last.downcase.to_sym
+					#end
 
+					class_option :verbose, 
+						type: :boolean, 
+						default: false,
+						aliases: '-v', 
+						desc: 'Whether to output informative debug'
 
-			def [] key
-				@config[key]
+					class_option :config, 
+						type: :string, 
+						default: nil,
+						aliases: '-c', 
+						desc: 'Configuration file'
+
+					class_option :project, 
+						type: :string, 
+						default: nil,
+						aliases: '-p', 
+						desc: 'Target project'
+				end
 			end
 		end
 
@@ -42,43 +43,48 @@ module Kook
 
 			desc "detect", "Detect current project"
 			def detect
+				before_filter options
+				current_project = @app.current_project
 				project_name = current_project.nil? ? "-none-" : current_project
 				say "Current project is #{project_name}."
 			end
 
 			desc "list", "List projects"
 			def list
-				config.each_project do |project_name,project|
-					pp project_name
-					exist = File.exist? project.path
+				before_filter options
+				projects_exist = false
+				@app.each_project do |project_name,project_data|
+					projects_exist = true
+					exist = File.exist? project_data.path
 					display_path = (
-						path.clone
+						project_data.path.clone
 						.gsub!(/#{ENV['HOME']}/,'~')
 						.send(exist ? :green : :red)
 					)
 					puts "%- 24s %s" % [project_name, display_path]
 				end
+				STDERR.puts "Empty list : no project configured." if not projects_exist
 			end
 
-			# FIXME: option for alternative path
-			desc "add PROJECT [PATH]", "Register new project"
+			option :path
+			desc "add PROJECT", "Register new project"
 			def add project_name, project_path=nil
+				before_filter options
+				project_path = options[:path]
 
 				if project_path.nil? then
 					project_path = Dir.pwd
 				end
 				project_path = File.expand_path project_path
-				config.add_project project_name, project_path
+				@app.add_project project_name, project_path
 
 				say "Project #{project_name} registered on #{project_path}."
-			rescue Exception => e
-				fail_for e, project: project_name, path: project_path
 			end
 
 			desc "rm PROJECT", "Unregister existing project"
 			def rm project
-				config['projects'].delete project
-				config.save_main
+				before_filter options
+				@app.remove_project project
 				say "Project #{project} unregistered."
 			end
 
@@ -93,45 +99,32 @@ module Kook
 			end
 			# TODO: editcopy project to another name + base path
 			# TODO: copy project to another name + base path
-			#
-			private
-
-			def config 
-				Config.instance
-			end
 		end
 
 		class View < Thor
 			include KookHelper
 
-			desc "list [PROJECT]", "List view for a project"
-			def list project=nil
-				project ||= current_project
-				validate_project_exists project
+			desc "list", "List view for a project"
+			def list project_name=nil
+				before_filter options
+				project_name ||= @app.current_project
 
-				if config['views'].has_key? project then
-					return if config['views'][project].nil?
-					config['views'][project].each do |view,path|
-						puts "%- 24s %s" % [view, path]
-
-						next if config['commands'][project].nil? or \
-							config['commands'][project][view].nil?
-
-						config['commands'][project][view].each_index do |idx|
-							puts "  % 4d.  %s" % [
-								idx, 
-								config['commands'][project][view][idx]
-							]
-						end
-					end
-				end
+				@app.list_views project_name
 			end
 
-			desc "add PROJECT VIEW", "Register new view"
-			def add project, view, path=nil
-				if path.nil? then
-					path = Dir.pwd
+			desc "add VIEW", "Register new view"
+			option :path
+			def add view_name
+				before_filter options
+				project_name ||= @app.current_project
+
+				view_path = options[:path]
+				if view_path.nil? then
+					view_path = Dir.pwd
 				end
+
+				@app.add_view project_name, view_name, view_path
+
 				project_rootdir = config['projects'][project]
 				# simplify if current dir is a subdir of project base
 				if path == project_rootdir then
@@ -157,12 +150,6 @@ module Kook
 				config['views'][project].delete view
 				config.save_main
 			end
-
-			private
-
-			def config 
-				Config.instance
-			end
 		end
 
 		# FIXME: add helper validating project name
@@ -187,12 +174,6 @@ module Kook
 			def rm project, view, index
 				raise NotImplementedError
 			end
-
-			private
-
-			def config 
-				Config.instance
-			end
 		end
 
 		class Main < Thor
@@ -207,36 +188,12 @@ module Kook
 			desc "command SUBCOMMAND [options]", "Commands for managing commands"
 			subcommand "command", CLI::Command
 
-			desc "fire PROJECT", "Run project environment"
-			def fire project
-				validate_project_name project
-				validate_project_exists project 
-				pp config
-
-				raise "No view defined for #{project}" if not config['views'].has_key? project
-				config['views'][project].each do |view,view_path|
-					project_path = config['projects'][project]
-					target = ENV['KONSOLE_DBUS_SERVICE'] || 'org.kde.konsole'
-					session=`qdbus #{target} /Konsole newSession`.strip
-
-					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"cd #{project_path}\n\""
-					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"cd #{view_path}\n\""
-					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"clear\n\""
-					system "qdbus org.kde.konsole /Sessions/#{session} setTitle 1 \"#{view}\""
-					next unless config['commands'][project].has_key? view
-					config['commands'][project][view].each do |command|
-						system "qdbus org.kde.konsole /Sessions/#{session} sendText \"#{command}\""
-						system "qdbus org.kde.konsole /Sessions/#{session} sendText \"\n\""
-					end
-				end
+			desc "fire [PROJECT]", "Run project environment"
+			def fire project_name=nil
+				before_filter options
+				@app.fire_project project_name
 			end
 
-
-			private
-
-			def config 
-				Config.instance
-			end
 		end	
 	end
 end

@@ -17,6 +17,9 @@ module Kook
 			@description = nil
 			@path = nil
 			@views = {}
+
+			yield self if block_given?
+			self
 		end
 
 		def path= path
@@ -38,31 +41,39 @@ module Kook
 			return @view.delete(view_name)
 		end
 
+		def each_view 
+			@views.each do |view_name, view_data|
+				yield view_name, view_data
+			end
+		end
+
 		def to_hash
 			return { 
-				project: @name,
-				description: @description,
-				path: @path,
-				views: @views.values.map{ |v| v.to_hash }
+				'project' => @name,
+				'description' => @description,
+				#'path' => @path,
+				'views' => @views.values.map{ |v| v.to_hash }
 			}
 		end
 
-		def from_hash project_hash
-			@name = project_hash[:project]
-			@description = project_hash[:description]
-			@path = project_hash[:path]
-			project_hash[:views].each do |hash_view|
-				view = View.new do |v|
-					v.from_hash hash_view
-				end
-				add_view view
+		def self.from_hash project_hash, project_path
+			project = Project.new project_hash['project'] do |p|
+				p.description = project_hash['description']
+				p.path = project_path
+
+				#project_hash[:views].each do |hash_view|
+				#	view = View.new do |v|
+				#		v.from_hash hash_view
+				#	end
+				#	p.add_view view
+				#end
 			end
 		end
 
 		def self.validate_name name
 			raise "TooShortProjectIdentifier" if name.size < Project::PROJECT_NAME_MIN_SIZE
 			raise "TooLongProjectIdentifier" if name.size > Project::PROJECT_NAME_MAX_SIZE
-			if not name =~ /^\w+$/ then
+			if not name =~ /^\w(\S+)$/ then
 				raise "BadProjectIdentifier #{name}" 
 			end
 			return true

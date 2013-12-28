@@ -19,5 +19,10 @@ $:.insert 0, File.join(DATA_DIR, 'lib')
 require 'thor'
 require 'kook'
 
-Kook::CLI::Main.start(ARGV)
-
+begin
+	Kook::CLI::Main.start(ARGV)
+rescue Exception => exception 
+	STDERR.puts "ERROR(#{exception.class}) :  #{exception}"
+	STDERR.puts exception.backtrace
+	exit 1
+end
