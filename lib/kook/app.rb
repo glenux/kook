@@ -86,7 +86,10 @@ module Kook
 			if view_path == project_path then
 				view_path = '.'
 			else
-				view_path.gsub!(/^#{project_path}\//,'')
+				view_path = (view_path
+							 .gsub(/^#{project_path}\//,'')
+							 .gsub(/\/$/,'')
+							)
 			end
 
 			@projects[project_name].create_view view_name, view_path
