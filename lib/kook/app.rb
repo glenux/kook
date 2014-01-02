@@ -41,6 +41,13 @@ module Kook
 			save
 		end
 
+		def edit_project project_name
+			raise MissingProject if not @projects.has_key? project_name
+
+			project_config_path = File.join @projects[project_name].path, "Kookfile"
+			system "%s %s" % [ENV['EDITOR'], project_config_path]
+		end
+
 		def remove_project project_name
 			raise MissingProject if not @projects.has_key? project_name
 			@projects.delete project_name

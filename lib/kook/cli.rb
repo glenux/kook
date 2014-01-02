@@ -34,6 +34,12 @@ module Kook
 						default: nil,
 						aliases: '-p', 
 						desc: 'Target project'
+
+					class_option :directory, 
+						type: :string, 
+						default: nil,
+						aliases: '-d', 
+						desc: 'Target directory'
 				end
 			end
 		end
@@ -55,11 +61,10 @@ module Kook
 				@app.list_projects
 			end
 
-			option :path
 			desc "add PROJECT", "Register new project"
-			def add project_name, project_path=nil
+			def add project_name
 				before_filter options
-				project_path = options[:path]
+				project_path = options[:directory]
 
 				if project_path.nil? then
 					project_path = Dir.pwd
@@ -77,14 +82,12 @@ module Kook
 				say "Project #{project} unregistered."
 			end
 
-			desc "edit PROJECT", "Open editor on project file"
-			def edit project
-				if config['projects'].has_key? project then
-					project_config_path = File.join CONFIG_DIR, "Kookfile"
-					system "%s %s" % [ENV['EDITOR'], project_config_path]
-				else
-					raise "Project #{project} not found"
-				end
+			desc "edit [PROJECT]", "Open editor on project file"
+			def edit project_name=nil
+				before_filter options
+				project_name ||= options[:project] || @app.current_project
+
+				@app.edit_project project_name
 			end
 			# TODO: editcopy project to another name + base path
 			# TODO: copy project to another name + base path
@@ -94,20 +97,19 @@ module Kook
 			include KookHelper
 
 			desc "list", "List view for a project"
-			def list project_name=nil
+			def list
 				before_filter options
-				project_name ||= @app.current_project
+				project_name = options[:project] || @app.current_project
 
 				@app.list_views project_name
 			end
 
 			desc "add VIEW", "Register new view"
-			option :path
 			def add view_name
 				before_filter options
-				project_name ||= @app.current_project
+				project_name = options[:project] || @app.current_project
 
-				view_path = options[:path]
+				view_path = options[:directory]
 				if view_path.nil? then
 					view_path = Dir.pwd
 				end
