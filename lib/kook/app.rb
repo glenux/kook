@@ -16,6 +16,22 @@ module Kook
 			@current_project = nil
 		end
 
+		def list_projects
+			projects_exist = false
+
+			@projects.each do |project_name,project_data|
+				projects_exist = true
+				exist = File.exist? project_data.path
+				display_path = (
+					project_data.path.clone
+					.gsub!(/#{ENV['HOME']}/,'~')
+						.send(exist ? :green : :red)
+				)
+				puts "%- 24s %s" % [project_name, display_path]
+			end
+			STDERR.puts "No project found." if not projects_exist
+		end
+
 		def add_project project_name, project_path=nil
 			raise ExistingProject if @projects.has_key? project_name
 
@@ -48,12 +64,6 @@ module Kook
 					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"#{command}\""
 					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"\n\""
 				end
-			end
-		end
-
-		def each_project
-			@projects.each do |p,data|
-				yield p,data
 			end
 		end
 

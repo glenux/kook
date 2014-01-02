@@ -52,18 +52,7 @@ module Kook
 			desc "list", "List projects"
 			def list
 				before_filter options
-				projects_exist = false
-				@app.each_project do |project_name,project_data|
-					projects_exist = true
-					exist = File.exist? project_data.path
-					display_path = (
-						project_data.path.clone
-						.gsub!(/#{ENV['HOME']}/,'~')
-						.send(exist ? :green : :red)
-					)
-					puts "%- 24s %s" % [project_name, display_path]
-				end
-				STDERR.puts "Empty list : no project configured." if not projects_exist
+				@app.list_projects
 			end
 
 			option :path
