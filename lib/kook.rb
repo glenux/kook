@@ -1,4 +1,5 @@
 
+require 'kook/version'
 require 'kook/exceptions'
 require 'kook/view'
 require 'kook/project'
