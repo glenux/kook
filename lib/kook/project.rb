@@ -45,12 +45,22 @@ module Kook
 		end
 
 		def remove_view view_name
-			View.validate_name view_name
+			raise MissingView, view_name if not @views.has_key? view_name
 			return @view.delete(view_name)
 		end
 
+		def add_command view_name, command
+			raise MissingView, view_name if not @views.has_key? view_name
+			@views[view_name].commands << command
+		end
+
+		def remove_command view_name, command_idx
+			raise MissingView, view_name if not @views.has_key? view_name
+			@views[view_name].commands.delete_at(command_idx)
+		end
+
 		def each_view 
-			pp @views
+			#pp @views
 			@views.each do |view_name, view_data|
 				yield view_name, view_data
 			end
@@ -70,7 +80,6 @@ module Kook
 				p.description = project_hash['description']
 				p.path = project_path
 
-				#pp project_hash['views']
 				project_hash['views'].each do |view_hash|
 					view_data = View.from_hash view_hash
 					p.add_view view_data

@@ -7,6 +7,7 @@ module Kook
 
 		class ExistingProject < RuntimeError ; end
 		class MissingProject < RuntimeError ; end
+		class MissingProjectFile < RuntimeError ; end
 
 		def initialize
 			super
@@ -75,9 +76,7 @@ module Kook
 		end
 
 		def add_view project_name, view_name, view_path=nil
-			Project.validate_name project_name
 			View.validate_name view_name
-
 			raise MissingProject if not @projects.has_key? project_name
 
 			project_path = @projects[project_name].path
@@ -96,23 +95,34 @@ module Kook
 			save
 		end
 
+		def add_command project_name, view_name, command
+			View.validate_name view_name
+			raise MissingProject if not @projects.has_key? project_name
+		
+			@projects[project_name].add_command view_name, command
+			save
+		end
+
+		def remove_command project_name, view_name, command_idx
+			raise MissingProject if not @projects.has_key? project_name
+
+			@projects[project_name].remove_command view_name, command_idx
+			save
+		end
+
 		def list_views project_name
 			raise MissingProject if not @projects.has_key? project_name
-			
-			# FIXME: return if config['views'][project].nil?
 			
 			@projects[project_name].each_view do |view_name,view_data|
 				puts "%- 24s %s" % [view_name, view_data.path]
 
-				#next if config['commands'][project].nil? or \
-				#	config['commands'][project][view].nil?
+				if view_data.commands.empty?	
+					next
+				end
 
-				#config['commands'][project][view].each_index do |idx|
-				#	puts "  % 4d.  %s" % [
-				#		idx, 
-				#		config['commands'][project][view][idx]
-				#	]
-				#end
+				view_data.commands.each_index do |idx|
+					puts "* % 4d.  %s" % [idx, view_data.commands[idx]]
+				end
 			end
 		end
 
@@ -132,7 +142,7 @@ module Kook
 			yaml['projects'].each do |project_name,project_path|
 				# pp project_path
 				#project_path = @config['projects'][project]
-				project_file = kook_file_for project_path
+				project_file = File.join project_path, "Kookfile"
 
 				STDERR.puts "Loading sub configuration #{project_file}..." if @verbose
 				if File.exist? project_file then
@@ -188,12 +198,6 @@ module Kook
 		end
 
 		private
-
-		def kook_file_for project_path
-			kook_files = Dir.glob(File.join(project_path, 'Kookfile'))
-			raise MissingProjectFile if kook_files.empty?
-			kook_files.first
-		end
 
 		def to_yaml
 			return {

@@ -85,7 +85,7 @@ module Kook
 			desc "edit [PROJECT]", "Open editor on project file"
 			def edit project_name=nil
 				before_filter options
-				project_name ||= options[:project] || @app.current_project
+				project_name ||= @app.current_project
 
 				@app.edit_project project_name
 			end
@@ -99,7 +99,7 @@ module Kook
 			desc "list", "List view for a project"
 			def list
 				before_filter options
-				project_name = options[:project] || @app.current_project
+				project_name = @app.current_project
 
 				@app.list_views project_name
 			end
@@ -107,7 +107,7 @@ module Kook
 			desc "add VIEW", "Register new view"
 			def add view_name
 				before_filter options
-				project_name = options[:project] || @app.current_project
+				project_name = @app.current_project
 
 				view_path = options[:directory]
 				if view_path.nil? then
@@ -119,35 +119,33 @@ module Kook
 			end
 
 			desc "rm PROJECT VIEW", "Unregister existing view on project"
-			def rm project, view
-				# FIXME: validate project existance
-				# FIXME: validate view existance
-				config['views'][project].delete view
-				config.save_main
+			def rm view_name
+				before_filter options
+				project_name = options[:project] || @app.current_project
+
+				@app.remove_view project_name, view_name, view_path
 			end
 		end
 
 		# FIXME: add helper validating project name
 		# FIXME: add helper validating vie name for project
 		class Command < Thor
+			include KookHelper
+
 			desc "add PROJECT VIEW COMMAND", "Add command for view "
-			def add project, view, command
-				unless config['commands'].has_key? project then
-					config['commands'][project] = {}
-				end
-				if config['commands'][project].nil? then
-					config['commands'][project] = {}
-				end
-				unless config['commands'][project].has_key? view then
-					config['commands'][project][view] = []
-				end
-				config['commands'][project][view] << command
-				config.save_main
+			def add view_name, command
+				before_filter options
+				project_name = options[:project] || @app.current_project
+
+				@app.add_command project_name, view_name, command
 			end
 
-			desc "rm PROJECT VIEW", "Remove command for view"
-			def rm project, view, index
-				raise NotImplementedError
+			desc "rm VIEW INDEX", "Remove command for view"
+			def rm view_name, command_index
+				before_filter options
+				project_name = options[:project] || @app.current_project
+
+				@app.remove_command project_name, view_name, command_index.to_i
 			end
 		end
 

@@ -1,7 +1,7 @@
 
 module Kook
 	class View
-		attr_reader :name, :path
+		attr_reader :name, :path, :commands
 		attr_accessor :description
 		VIEW_NAME_MIN_SIZE = 4
 		VIEW_NAME_MAX_SIZE = 12
@@ -10,7 +10,7 @@ module Kook
 			self.class.validate_name name
 			@name = name
 			@path = path
-			@commands = {}
+			@commands = []
 		end
 
 		def self.validate_name name
@@ -26,14 +26,24 @@ module Kook
 			return { 
 				'view' => @name,
 				'path' => @path,
-				'commands' => @commands.values
+				'commands' => @commands
 			}
+		end
+
+		def add_command command
+			@commands << command
+		end
+
+		def rm_command command_index
+			@command.delete command_index
 		end
 
 		def self.from_hash view_hash
 			view = View.new view_hash['view'], view_hash['path']
-			# @commands = view_hash['commands']
-			view
+			view_hash['commands'].each do |c|
+				view.add_command c
+			end
+			return view
 		end
 	end
 end
