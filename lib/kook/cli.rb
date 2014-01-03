@@ -121,7 +121,7 @@ module Kook
 			desc "rm PROJECT VIEW", "Unregister existing view on project"
 			def rm view_name
 				before_filter options
-				project_name = options[:project] || @app.current_project
+				project_name = @app.current_project
 
 				@app.remove_view project_name, view_name, view_path
 			end
@@ -135,7 +135,7 @@ module Kook
 			desc "add PROJECT VIEW COMMAND", "Add command for view "
 			def add view_name, command
 				before_filter options
-				project_name = options[:project] || @app.current_project
+				project_name = @app.current_project
 
 				@app.add_command project_name, view_name, command
 			end
@@ -143,7 +143,7 @@ module Kook
 			desc "rm VIEW INDEX", "Remove command for view"
 			def rm view_name, command_index
 				before_filter options
-				project_name = options[:project] || @app.current_project
+				project_name = @app.current_project
 
 				@app.remove_command project_name, view_name, command_index.to_i
 			end
