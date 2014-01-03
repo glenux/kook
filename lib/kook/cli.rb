@@ -162,8 +162,11 @@ module Kook
 			subcommand "command", CLI::Command
 
 			desc "fire [PROJECT]", "Run project environment"
-			def fire project_name=nil
+
+			def fire
 				before_filter options
+				project_name = @app.current_project
+
 				@app.fire_project project_name
 			end
 

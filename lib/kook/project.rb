@@ -31,6 +31,23 @@ module Kook
 			@path = path
 		end
 
+		def fire
+			target = ENV['KONSOLE_DBUS_SERVICE'] || 'org.kde.konsole'
+
+			@views.each do |view,view_data|
+				session=`qdbus #{target} /Konsole newSession`.strip
+				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"cd #{@path}\n\""
+				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"cd #{view_data.path}\n\""
+				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"clear\n\""
+				system "qdbus org.kde.konsole /Sessions/#{session} setTitle 1 \"#{view}\""
+
+				view_data.commands.each do |command|
+					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"#{command}\""
+					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"\n\""
+				end
+			end
+		end
+
 		def create_view view_name, view_path
 			raise ExistingView, view_name if @views.has_key? view_name
 			View.validate_name view_name

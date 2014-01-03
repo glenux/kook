@@ -59,20 +59,8 @@ module Kook
 			raise MissingProject if not @projects.has_key? project_name
 
 			project_path = @projects[project_name].path
-			@projects[project_name].each_view do |view,view_data|
-				target = ENV['KONSOLE_DBUS_SERVICE'] || 'org.kde.konsole'
-				session=`qdbus #{target} /Konsole newSession`.strip
-
-				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"cd #{project_path}\n\""
-				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"cd #{view_path}\n\""
-				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"clear\n\""
-				system "qdbus org.kde.konsole /Sessions/#{session} setTitle 1 \"#{view}\""
-				next unless config['commands'][project].has_key? view
-				config['commands'][project][view].each do |command|
-					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"#{command}\""
-					system "qdbus org.kde.konsole /Sessions/#{session} sendText \"\n\""
-				end
-			end
+			@projects[project_name].fire
+ 		   
 		end
 
 		def add_view project_name, view_name, view_path=nil
