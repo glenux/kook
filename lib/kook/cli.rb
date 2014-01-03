@@ -61,7 +61,7 @@ module Kook
 				@app.list_projects
 			end
 
-			desc "add PROJECT", "Register new project"
+			desc "add PROJECT [-d DIRECTORY]", "Register new project"
 			def add project_name
 				before_filter options
 				project_path = options[:directory]
@@ -82,8 +82,8 @@ module Kook
 				say "Project #{project} unregistered."
 			end
 
-			desc "edit [PROJECT]", "Open editor on project file"
-			def edit project_name=nil
+			desc "edit [-p PROJECT]", "Open editor on project file"
+			def edit
 				before_filter options
 				project_name ||= @app.current_project
 
@@ -96,7 +96,7 @@ module Kook
 		class View < Thor
 			include KookHelper
 
-			desc "list", "List view for a project"
+			desc "list [-p PROJECT]", "List view for a project"
 			def list
 				before_filter options
 				project_name = @app.current_project
@@ -104,7 +104,7 @@ module Kook
 				@app.list_views project_name
 			end
 
-			desc "add VIEW", "Register new view"
+			desc "add VIEW [-p PROJECT] [-d DIRECTORY]", "Register new view"
 			def add view_name
 				before_filter options
 				project_name = @app.current_project
@@ -118,7 +118,7 @@ module Kook
 
 			end
 
-			desc "rm PROJECT VIEW", "Unregister existing view on project"
+			desc "rm VIEW [-p PROJECT]", "Unregister existing view on project"
 			def rm view_name
 				before_filter options
 				project_name = @app.current_project
@@ -132,7 +132,7 @@ module Kook
 		class Command < Thor
 			include KookHelper
 
-			desc "add PROJECT VIEW COMMAND", "Add command for view "
+			desc "add VIEW COMMAND [-p PROJECT]", "Add command for view"
 			def add view_name, command
 				before_filter options
 				project_name = @app.current_project
@@ -140,7 +140,7 @@ module Kook
 				@app.add_command project_name, view_name, command
 			end
 
-			desc "rm VIEW INDEX", "Remove command for view"
+			desc "rm VIEW INDEX [-p PROJECT]", "Remove command for view"
 			def rm view_name, command_index
 				before_filter options
 				project_name = @app.current_project
@@ -161,9 +161,8 @@ module Kook
 			desc "command SUBCOMMAND [options]", "Commands for managing commands"
 			subcommand "command", CLI::Command
 
-			desc "fire [PROJECT]", "Run project environment"
-
-			def fire
+			desc "start [-p PROJECT]", "Run project environment"
+			def start
 				before_filter options
 				project_name = @app.current_project
 
