@@ -3,7 +3,7 @@ module Kook
 	class View
 		attr_reader :name, :path, :commands
 		attr_accessor :description
-		VIEW_NAME_MIN_SIZE = 4
+		VIEW_NAME_MIN_SIZE = 3
 		VIEW_NAME_MAX_SIZE = 12
 
 		def initialize name, path=nil
