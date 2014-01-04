@@ -8,7 +8,6 @@ require 'pathname'
 
 require 'bundler/setup'
 
-require 'pry'
 require 'colorize'
 require 'pp'
 
