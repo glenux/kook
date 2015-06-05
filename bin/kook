@@ -1,23 +1,17 @@
 #!/usr/bin/env ruby
 # vim: set syntax=ruby:
 
-#require 'bundler/setup'
 require 'yaml'
 require 'singleton'
 require 'pathname'
 
-require 'bundler/setup'
-
 require 'colorize'
 require 'pp'
 
-DATA_DIR = File.expand_path(
-	File.join(File.dirname(Pathname.new(__FILE__).realpath),'..')
-)
+DATA_DIR = (Pathname.new(__FILE__).dirname + '..').realpath.to_s
 
-VERSION = "0.3"
-
-$:.insert 0, File.join(DATA_DIR, 'lib')
+# FIXME: should not require including the 'lib' dir.
+#$:.insert 0, File.join(DATA_DIR, 'lib')
 
 require 'thor'
 require 'kook'
@@ -25,6 +19,8 @@ require 'kook'
 begin
 	Kook::CLI::Main.start(ARGV)
 rescue Exception => exception 
+	# In case of unhandled exception. 
+	# FIXME: Manage display & create log file
 	STDERR.puts "ERROR(#{exception.class}) :  #{exception}"
 	STDERR.puts exception.backtrace
 	exit 1
