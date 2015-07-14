@@ -20,6 +20,9 @@ module Kook
 		def list_projects
 			projects_exist = false
 
+			# get boundary for project name + margin
+			column_width = @projects.map{ |name,data| name }.max
+
 			@projects.each do |project_name,project_data|
 				projects_exist = true
 				exist = File.exist? project_data.path
@@ -28,7 +31,7 @@ module Kook
 					.gsub!(/#{ENV['HOME']}/,'~')
 						.send(exist ? :green : :red)
 				)
-				puts "%- 24s %s" % [project_name, display_path]
+				puts "%- #{column_width}s %s" % [project_name, display_path]
 			end
 			STDERR.puts "No project found." if not projects_exist
 		end
