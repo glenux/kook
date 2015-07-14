@@ -6,12 +6,8 @@ require 'singleton'
 require 'pathname'
 
 require 'colorize'
-require 'pp'
 
 DATA_DIR = (Pathname.new(__FILE__).dirname + '..').realpath.to_s
-
-# FIXME: should not require including the 'lib' dir.
-#$:.insert 0, File.join(DATA_DIR, 'lib')
 
 require 'thor'
 require 'kook'
