@@ -33,9 +33,12 @@ module Kook
 
 		def fire
 			target = ENV['KONSOLE_DBUS_SERVICE'] || 'org.kde.konsole'
+			window = ENV['KONSOLE_DBUS_WINDOW'] || '/Konsole'
+
+			# FIXME: use runCommand instead of sendText ?
 
 			@views.each do |view,view_data|
-				session=`qdbus #{target} /Konsole newSession`.strip
+				session=`qdbus #{target} #{window} newSession`.strip
 				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"cd #{@path}\n\""
 				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"cd #{view_data.path}\n\""
 				system "qdbus org.kde.konsole /Sessions/#{session} sendText \"clear\n\""
