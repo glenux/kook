@@ -1,4 +1,4 @@
-Copyright (c) 2014 Glenn Y. Rolland
+Copyright (c) 2015 Glenn Y. Rolland
 
 MIT License
 
