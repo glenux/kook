@@ -9,7 +9,7 @@ module Kook
 		class MissingProjectFile < RuntimeError ; end
 		class InvalidProjectName < RuntimeError ; end
 		PROJECT_NAME_MIN_SIZE = 4
-		PROJECT_NAME_MAX_SIZE = 12
+		PROJECT_NAME_MAX_SIZE = 15
 
 		def initialize project_name
 			self.class.validate_name project_name
